@@ -1,0 +1,172 @@
+🎯 Bean Nedir?
+
+Bean, Spring IoC (Inversion of Control) container tarafından yönetilen bir Java nesnesidir. Spring uygulamasının temel yapı taşıdır.
+java
+
+// Basit bir Bean örneği
+@Component
+public class UserService {
+    // Bean logic here
+}
+
+🔄 Bean'den Context'e Yolculuk
+1. Bean Tanımlama Yöntemleri
+A. Annotation-based Configuration
+
+// 1. @Component - Genel amaçlı
+@Component
+public class UserService {
+    public String getUser() {
+        return "John Doe";
+    }
+}
+
+// 2. @Service - Business logic katmanı
+@Service
+public class OrderService {
+    public void createOrder() {
+        // business logic
+    }
+}
+
+// 3. @Repository - Data access katmanı
+@Repository
+public class UserRepository {
+    public User findById(Long id) {
+        // data access logic
+    }
+}
+
+// 4. @Controller - Web katmanı
+@Controller
+public class UserController {
+    @GetMapping("/users")
+    public String getUsers() {
+        return "users";
+    }
+}
+
+// 5. @Configuration - Bean tanımlama sınıfı
+@Configuration
+public class AppConfig {
+    
+    @Bean
+    public DataSource dataSource() {
+        return new HikariDataSource();
+    }
+    
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+}
+
+🏗️ Bean Yükleme Süreci (Bean → Context)
+Adım 1: Component Tarama (Component Scanning)
+
+@SpringBootApplication  // Bu annotation @ComponentScan'ı içerir
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
+Çalışma Mantığı:
+
+    @ComponentScan default olarak ana sınıfın bulunduğu package ve alt package'ları tarar
+
+    @Component, @Service, @Repository, @Controller annotasyonlu sınıfları bulur
+
+    Her bulduğu sınıf için bir Bean tanımı oluşturur
+
+Dependency Injection Çeşitleri
+1. Constructor Injection (Önerilen)
+@Service
+public class OrderService {
+    private final UserService userService;
+    private final ProductService productService;
+    
+    // Constructor Injection
+    @Autowired
+    public OrderService(UserService userService, ProductService productService) {
+        this.userService = userService;
+        this.productService = productService;
+    }
+}
+
+2. Field Injection
+@Service
+public class OrderService {
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private ProductService productService;
+}
+
+3. Setter Injection
+@Service
+public class OrderService {
+    private UserService userService;
+    private ProductService productService;
+    
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+    
+    @Autowired
+    public void setProductService(ProductService productService) {
+        this.productService = productService;
+    }
+}
+📊 Bean Scope'ları (Yaşam Döngüsü)
+@Component
+@Scope("singleton")  // Default - Uygulama boyunca 1 instance
+public class SingletonBean { }
+
+@Component
+@Scope("prototype")  // Her istediğinde yeni instance
+public class PrototypeBean { }
+
+@Component
+@Scope("request")    // Her HTTP request için yeni instance
+public class RequestScopedBean { }
+
+@Component
+@Scope("session")    // Her HTTP session için yeni instance  
+public class SessionScopedBean { }
+
+🔄 Bean Yaşam Döngüsü (Lifecycle)
+@Component
+public class LifecycleBean implements InitializingBean, DisposableBean {
+    
+    // 1. Constructor
+    public LifecycleBean() {
+        System.out.println("1. Constructor çalıştı");
+    }
+    
+    // 2. @PostConstruct - Dependency Injection sonrası
+    @PostConstruct
+    public void init() {
+        System.out.println("3. @PostConstruct çalıştı");
+    }
+    
+    // 3. InitializingBean interface
+    @Override
+    public void afterPropertiesSet() {
+        System.out.println("4. afterPropertiesSet çalıştı");
+    }
+    
+    // 4. @PreDestroy - Context kapanmadan önce
+    @PreDestroy
+    public void cleanup() {
+        System.out.println("5. @PreDestroy çalıştı");
+    }
+    
+    // 5. DisposableBean interface
+    @Override
+    public void destroy() {
+        System.out.println("6. destroy çalıştı");
+    }
+}
